@@ -1,17 +1,24 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../../app.js';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { jest } from '@jest/globals';
 
-jest.setTimeout(15000);
+jest.setTimeout(20000);
+
+let mongoServer;
 
 describe('Task API', () => {
   let projectId;
   let userId;
 
   beforeAll(async () => {
-    await mongoose.connect('mongodb://127.0.0.1:27017/test-db');
+    mongoServer = await MongoMemoryServer.create();
+    const uri = mongoServer.getUri();
 
+    await mongoose.connect(uri);
+
+    // Create user
     const userRes = await request(app)
       .post('/api/users/create')
       .send({
@@ -21,6 +28,7 @@ describe('Task API', () => {
 
     userId = userRes.body.data._id;
 
+    // Create project
     const projectRes = await request(app).post('/api/projects').send({
       name: 'Test Project',
       owner: userId,
@@ -30,13 +38,16 @@ describe('Task API', () => {
   });
 
   afterEach(async () => {
-    await mongoose.connection.db.collection('tasks').deleteMany({});
+    const collections = mongoose.connection.collections;
+
+    for (const key in collections) {
+      await collections[key].deleteMany();
+    }
   });
 
   afterAll(async () => {
-    await mongoose.connection.db.collection('projects').deleteMany({});
-    await mongoose.connection.db.collection('users').deleteMany({});
-    await mongoose.connection.close();
+    await mongoose.disconnect();
+    await mongoServer.stop();
   });
 
   test('Create Task API', async () => {
