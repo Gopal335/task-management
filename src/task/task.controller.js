@@ -36,6 +36,8 @@ export const deleteTask = asyncHandler(async (req, res) => {
 });
 
 export const updateTaskStatus = asyncHandler(async (req, res) => {
+  validateRequired(['status'], req.body);
+
   const task = await taskService.updateTaskStatus(
     req.params.id,
     req.body.status
@@ -45,6 +47,8 @@ export const updateTaskStatus = asyncHandler(async (req, res) => {
 });
 
 export const assignTask = asyncHandler(async (req, res) => {
+  validateRequired(['userId'], req.body);
+
   const task = await taskService.assignTask(req.params.id, req.body.userId);
 
   return sendResponse(res, 200, 'Task assigned', task);

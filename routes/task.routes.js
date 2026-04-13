@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/', taskController.createTask);
 
 router.get('/', taskController.getTasks);
+router.get('/analytics/top-users', taskController.getTopUsers);
 
 router.get('/:id', taskController.getTaskById);
 
@@ -16,7 +17,5 @@ router.delete('/:id', taskController.deleteTask);
 router.patch('/:id/status', taskController.updateTaskStatus);
 
 router.patch('/:id/assign', taskController.assignTask);
-
-router.get('/analytics/top-users', taskController.getTopUsers);
 
 export default router;

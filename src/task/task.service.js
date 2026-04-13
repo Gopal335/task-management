@@ -6,12 +6,13 @@ export const createTask = async (data) => {
 };
 
 export const getTasks = async (query) => {
-  const { status, assignedTo, page = 1, limit = 10 } = query;
+  const { status, assignedTo, user, project, page = 1, limit = 10 } = query;
 
   const filter = {};
 
   if (status) filter.status = status;
-  if (assignedTo) filter.assignedTo = assignedTo;
+  if (assignedTo || user) filter.assignedTo = assignedTo || user;
+  if (project) filter.project = project;
 
   const skip = (page - 1) * limit;
 
@@ -49,15 +50,23 @@ export const updateTaskStatus = async (id, status) => {
     throw new AppError('Invalid status', 400);
   }
 
-  return await Task.findByIdAndUpdate(id, { status }, { new: true });
+  const task = await Task.findByIdAndUpdate(id, { status }, { new: true });
+
+  if (!task) throw new AppError('Task not found', 404);
+
+  return task;
 };
 
 export const assignTask = async (id, userId) => {
-  return await Task.findByIdAndUpdate(
+  const task = await Task.findByIdAndUpdate(
     id,
     { assignedTo: userId },
     { new: true }
   );
+
+  if (!task) throw new AppError('Task not found', 404);
+
+  return task;
 };
 
 export const getTopUsers = async () => {
